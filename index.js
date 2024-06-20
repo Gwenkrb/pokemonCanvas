@@ -1,34 +1,109 @@
-const canvas = document.querySelector('canvas');
-const c = canvas.getContext('2d');
+const canvas = document.querySelector('canvas')
+
+const c = canvas.getContext('2d')
 
 canvas.width = 1024
 canvas.height = 576
 
-c.fillStyle = 'white';
-//(start position x, start position y, width, height)
-c.fillRect(0, 0, canvas.width, canvas.height);
+c.fillStyle = 'white'
+c.fillRect(0, 0, canvas.width, canvas.height)
 
-//instead of declaring our image on html, we did it on JS this way
-const image = new Image();
-//forgot the . in the path that's why it didn't work
-image.src = './images/pokemonMap.png';
+const image = new Image()
+image.src = './images/pokemonMap.png'
 
-const playerImage = new Image();
+const playerImage = new Image()
 playerImage.src = './images/playerDown.png'
 
-//arrow function
-image.onload = () => {
-    c.drawImage(image, -1170, -550)
-    c.drawImage(playerImage,
-        //croping arguments
-        0,
-        0,
-        playerImage.width/4,
-        playerImage.height,
-        //position arguments
-        (canvas.width/2) - (playerImage.width/4)/2,
-        (canvas.height/2)-(playerImage.height/2 ),
-        playerImage.width/4,
-        playerImage.height,
-    )
+class Sprite {
+    constructor({position, image, velocity}) {
+        this.position = position
+        this.image = image
+    }
+    draw() {
+        c.drawImage(this.image,this.position.x,this.position.y)
+    }
 }
+
+const background = new Sprite({
+    position: {
+        x: -1100,
+        y: -600,
+    },
+    image : image
+})
+
+const keys = {
+    z: {
+        pressed : false
+    },
+    q: {
+        pressed : false
+    },
+    s: {
+        pressed : false
+    },
+    d: {
+        pressed : false
+    }
+}
+
+function animate() {
+    window.requestAnimationFrame(animate)
+    background.draw()
+    c.drawImage(
+        playerImage,
+        0,
+        0,
+        playerImage.width/4,
+        playerImage.height,
+        canvas.width/2 - playerImage.width/4/2,
+        canvas.height/2 - playerImage.height/2,
+        playerImage.width/4,
+        playerImage.height
+    )
+    if (keys.z.pressed && lastKey == 'z') background.position.y += 3
+    else if (keys.s.pressed && lastKey == 's') background.position.y -= 3
+    else if (keys.q.pressed && lastKey == 'q') background.position.x += 3
+    else if (keys.d.pressed && lastKey == 'd') background.position.x -= 3
+}
+animate()
+
+let lastKey = ''
+window.addEventListener('keydown', (e) => {
+    switch (e.key){
+        case 'z':
+        keys.z.pressed = true
+        lastKey = 'z'
+        break
+        case 'q':
+        keys.q.pressed = true
+        lastKey = 'q'
+        break
+        case 's':
+        keys.s.pressed = true
+        lastKey = 's'
+        break
+        case 'd':
+        keys.d.pressed = true
+        lastKey = 'd'
+        break
+    }
+})
+
+window.addEventListener('keyup', (e) => {
+    switch (e.key){
+        case 'z':
+        keys.z.pressed = false
+        break
+        case 'q':
+        keys.q.pressed = false
+        break
+        case 's':
+        keys.s.pressed = false
+        break
+        case 'd':
+        keys.d.pressed = false
+        break
+    }
+})
+    
