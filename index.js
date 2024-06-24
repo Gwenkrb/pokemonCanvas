@@ -5,8 +5,49 @@ const c = canvas.getContext('2d')
 canvas.width = 1024
 canvas.height = 576
 
-c.fillStyle = 'white'
-c.fillRect(0, 0, canvas.width, canvas.height)
+const collisionsMap = []
+for (let i = 0; i < collisions.length; i+=70) {
+    collisionsMap.push(collisions.slice(i,70+i))
+}
+
+class Frontiere {
+    static WIDTH = 48
+    static HEIGHT = 48
+    constructor({position}) {
+        this.position = position
+        this.width = 48
+        this.height = 48
+    }
+
+    draw() {
+        c.fillStyle = 'red'
+        c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
+}
+
+const frontieres = []
+
+const decalage = {
+    x: -1100,
+    y:-600
+}
+
+collisionsMap.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+            if (symbol === 1025) {
+                frontieres.push(
+                    new Frontiere ({
+                        position: {
+                            x: j*Frontiere.WIDTH + decalage.x,
+                            y: i*Frontiere.HEIGHT + decalage.y,
+                        }
+                    })
+                )
+            }
+    })
+})
+
+console.log(frontieres);
 
 const image = new Image()
 image.src = './images/pokemonMap.png'
@@ -26,8 +67,8 @@ class Sprite {
 
 const background = new Sprite({
     position: {
-        x: -1100,
-        y: -600,
+        x: decalage.x,
+        y: decalage.y,
     },
     image : image
 })
@@ -50,6 +91,9 @@ const keys = {
 function animate() {
     window.requestAnimationFrame(animate)
     background.draw()
+    frontieres.forEach(frontière => {
+        frontière.draw()
+    })
     c.drawImage(
         playerImage,
         0,
@@ -106,4 +150,3 @@ window.addEventListener('keyup', (e) => {
         break
     }
 })
-    
