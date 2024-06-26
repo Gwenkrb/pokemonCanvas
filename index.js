@@ -20,7 +20,7 @@ class Frontiere {
     }
 
     draw() {
-        c.fillStyle = 'red'
+        c.fillStyle = 'rgba(255,0,0,0.2)'
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 }
@@ -47,8 +47,6 @@ collisionsMap.forEach((row, i) => {
     })
 })
 
-console.log(frontieres);
-
 const image = new Image()
 image.src = './images/pokemonMap.png'
 
@@ -56,21 +54,51 @@ const playerImage = new Image()
 playerImage.src = './images/playerDown.png'
 
 class Sprite {
-    constructor({position, image, velocity}) {
+    constructor({position, image, velocity, frames = {max : 1}}) {
         this.position = position
         this.image = image
+        this.frames = frames
+
+        this.image.onload = () => {
+            this.width = this.image.width / this.frames.max
+            this.height = this.image.height
+            console.log(this.width);
+            console.log(this.height);
+        }
     }
     draw() {
-        c.drawImage(this.image,this.position.x,this.position.y)
+        //c.drawImage(this.image,this.position.x,this.position.y)
+        c.drawImage(
+            this.image,
+            0,
+            0,
+            this.image.width/this.frames.max,
+            this.image.height,
+            this.position.x,
+            this.position.y,
+            this.image.width/this.frames.max,
+            this.image.height
+        )
     }
 }
+
+const player = new Sprite({
+    position: {
+        x: canvas.width / 2 - 192 / 4 / 2,
+        y: canvas.height / 2 - 68 / 2
+    },
+    image: playerImage,
+    frames: {
+        max: 4
+    }
+})
 
 const background = new Sprite({
     position: {
         x: decalage.x,
         y: decalage.y,
     },
-    image : image
+    image : image,
 })
 
 const keys = {
@@ -88,27 +116,113 @@ const keys = {
     }
 }
 
+const deplacable = [background, ...frontieres]
+
+function collisionRectangulaire({rectangle1, rectangle2}) {
+    return (rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
+        rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
+        rectangle1.position.y <= rectangle2.position.y + rectangle2.height &&
+        rectangle1.position.y + rectangle1.height >= rectangle2.position.y)
+}
+
 function animate() {
     window.requestAnimationFrame(animate)
     background.draw()
-    frontieres.forEach(frontière => {
-        frontière.draw()
+    frontieres.forEach(frontiere => {
+        frontiere.draw()
+        
     })
-    c.drawImage(
-        playerImage,
-        0,
-        0,
-        playerImage.width/4,
-        playerImage.height,
-        canvas.width/2 - playerImage.width/4/2,
-        canvas.height/2 - playerImage.height/2,
-        playerImage.width/4,
-        playerImage.height
-    )
-    if (keys.z.pressed && lastKey == 'z') background.position.y += 3
-    else if (keys.s.pressed && lastKey == 's') background.position.y -= 3
-    else if (keys.q.pressed && lastKey == 'q') background.position.x += 3
-    else if (keys.d.pressed && lastKey == 'd') background.position.x -= 3
+    player.draw()
+
+    let bouger = true
+    if (keys.z.pressed && lastKey == 'z') {
+        for (let i = 0; i < frontieres.length; i++) {
+            const frontiere = frontieres[i]
+            if (
+                collisionRectangulaire({
+                    rectangle1: player,
+                    rectangle2: {...frontiere, position: {
+                        x: frontiere.position.x,
+                        y: frontiere.position.y + 3
+                    }}
+                })
+            )  {
+                console.log('collision');
+                bouger = false
+                break
+            }
+        }
+        if (bouger)
+        deplacable.forEach(deplacable => {
+            deplacable.position.y += 3
+        })
+    }
+    else if (keys.s.pressed && lastKey == 's') {
+        for (let i = 0; i < frontieres.length; i++) {
+            const frontiere = frontieres[i]
+            if (
+                collisionRectangulaire({
+                    rectangle1: player,
+                    rectangle2: {...frontiere, position: {
+                        x: frontiere.position.x + 3,
+                        y: frontiere.position.y 
+                    }}
+                })
+            )  {
+                console.log('collision');
+                bouger = false
+                break
+            }
+        }
+        if (bouger)
+        deplacable.forEach(deplacable => {
+            deplacable.position.y -= 3
+        })
+    }
+    else if (keys.q.pressed && lastKey == 'q') {
+        for (let i = 0; i < frontieres.length; i++) {
+            const frontiere = frontieres[i]
+            if (
+                collisionRectangulaire({
+                    rectangle1: player,
+                    rectangle2: {...frontiere, position: {
+                        x: frontiere.position.x,
+                        y: frontiere.position.y - 3
+                    }}
+                })
+            )  {
+                console.log('collision');
+                bouger = false
+                break
+            }
+        }
+        if (bouger)
+        deplacable.forEach(deplacable => {
+            deplacable.position.x += 3
+        })
+    }
+    else if (keys.d.pressed && lastKey == 'd') {
+        for (let i = 0; i < frontieres.length; i++) {
+            const frontiere = frontieres[i]
+            if (
+                collisionRectangulaire({
+                    rectangle1: player,
+                    rectangle2: {...frontiere, position: {
+                        x: frontiere.position.x - 3,
+                        y: frontiere.position.y
+                    }}
+                })
+            )  {
+                console.log('collision');
+                bouger = false
+                break
+            }
+        }
+        if (bouger)
+        deplacable.forEach(deplacable => {
+            deplacable.position.x  -= 3
+        })
+    }
 }
 animate()
 
