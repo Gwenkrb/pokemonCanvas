@@ -50,55 +50,53 @@ collisionsMap.forEach((row, i) => {
 const image = new Image()
 image.src = './images/pokemonMap.png'
 
-const playerImage = new Image()
-playerImage.src = './images/playerDown.png'
+const foregroundImage = new Image()
+foregroundImage.src = './images/foreground.png'
 
-class Sprite {
-    constructor({position, image, velocity, frames = {max : 1}}) {
-        this.position = position
-        this.image = image
-        this.frames = frames
 
-        this.image.onload = () => {
-            this.width = this.image.width / this.frames.max
-            this.height = this.image.height
-            console.log(this.width);
-            console.log(this.height);
-        }
-    }
-    draw() {
-        //c.drawImage(this.image,this.position.x,this.position.y)
-        c.drawImage(
-            this.image,
-            0,
-            0,
-            this.image.width/this.frames.max,
-            this.image.height,
-            this.position.x,
-            this.position.y,
-            this.image.width/this.frames.max,
-            this.image.height
-        )
-    }
-}
+const playerDownImage = new Image()
+playerDownImage.src = './images/playerDown.png'
+
+const playerUpImage = new Image()
+playerUpImage.src = './images/playerUp.png'
+
+const playerRightImage = new Image()
+playerRightImage.src = './images/playerRight.png'
+
+const playerLeftImage = new Image()
+playerLeftImage.src = './images/playerLeft.png'
 
 const player = new Sprite({
     position: {
         x: canvas.width / 2 - 192 / 4 / 2,
         y: canvas.height / 2 - 68 / 2
     },
-    image: playerImage,
+    image: playerDownImage,
     frames: {
         max: 4
+    },
+    sprites: {
+        up: playerUpImage,
+        right: playerRightImage,
+        left: playerLeftImage,
+        down: playerDownImage,
     }
 })
-
+console.log(player)
 const background = new Sprite({
     position: {
         x: decalage.x,
         y: decalage.y,
     },
     image : image,
+})
+
+const foreground = new Sprite({
+    position: {
+        x: decalage.x,
+        y: decalage.y,
+    },
+    image : foregroundImage,
 })
 
 const keys = {
@@ -116,7 +114,7 @@ const keys = {
     }
 }
 
-const deplacable = [background, ...frontieres]
+const deplacable = [background, ...frontieres, foreground]
 
 function collisionRectangulaire({rectangle1, rectangle2}) {
     return (rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
@@ -133,9 +131,13 @@ function animate() {
         
     })
     player.draw()
+    foreground.draw()
 
-    let bouger = true
+    let moving = true
+    player.moving = false
     if (keys.z.pressed && lastKey == 'z') {
+        player.moving = true
+        player.image = player.sprites.up
         for (let i = 0; i < frontieres.length; i++) {
             const frontiere = frontieres[i]
             if (
@@ -147,17 +149,18 @@ function animate() {
                     }}
                 })
             )  {
-                console.log('collision');
-                bouger = false
+                moving = false
                 break
             }
         }
-        if (bouger)
+        if (moving)
         deplacable.forEach(deplacable => {
             deplacable.position.y += 3
         })
     }
     else if (keys.s.pressed && lastKey == 's') {
+        player.moving = true
+        player.image = player.sprites.down
         for (let i = 0; i < frontieres.length; i++) {
             const frontiere = frontieres[i]
             if (
@@ -169,17 +172,18 @@ function animate() {
                     }}
                 })
             )  {
-                console.log('collision');
-                bouger = false
+                moving = false
                 break
             }
         }
-        if (bouger)
+        if (moving)
         deplacable.forEach(deplacable => {
             deplacable.position.y -= 3
         })
     }
     else if (keys.q.pressed && lastKey == 'q') {
+        player.moving = true
+        player.image = player.sprites.left
         for (let i = 0; i < frontieres.length; i++) {
             const frontiere = frontieres[i]
             if (
@@ -191,17 +195,18 @@ function animate() {
                     }}
                 })
             )  {
-                console.log('collision');
-                bouger = false
+                moving = false
                 break
             }
         }
-        if (bouger)
+        if (moving)
         deplacable.forEach(deplacable => {
             deplacable.position.x += 3
         })
     }
     else if (keys.d.pressed && lastKey == 'd') {
+        player.moving = true
+        player.image = player.sprites.right
         for (let i = 0; i < frontieres.length; i++) {
             const frontiere = frontieres[i]
             if (
@@ -213,12 +218,11 @@ function animate() {
                     }}
                 })
             )  {
-                console.log('collision');
-                bouger = false
+                moving = false
                 break
             }
         }
-        if (bouger)
+        if (moving)
         deplacable.forEach(deplacable => {
             deplacable.position.x  -= 3
         })
