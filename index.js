@@ -1,5 +1,4 @@
 const canvas = document.querySelector('canvas')
-
 const c = canvas.getContext('2d')
 
 canvas.width = 1024
@@ -10,23 +9,12 @@ for (let i = 0; i < collisions.length; i+=70) {
     collisionsMap.push(collisions.slice(i,70+i))
 }
 
-class Frontiere {
-    static WIDTH = 48
-    static HEIGHT = 48
-    constructor({position}) {
-        this.position = position
-        this.width = 48
-        this.height = 48
-    }
-
-    draw() {
-        c.fillStyle = 'rgba(255,0,0,0.2)'
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
+const battleZoneMap = []
+for (let i = 0; i < battleZoneData.length; i+=70) {
+    battleZoneMap.push(battleZoneData.slice(i,70+i))
 }
 
 const frontieres = []
-
 const decalage = {
     x: -1100,
     y:-600
@@ -47,12 +35,31 @@ collisionsMap.forEach((row, i) => {
     })
 })
 
+const battleZone = []
+
+battleZoneMap.forEach((row, i) => {
+    row.forEach((symbol, j) => {
+            if (symbol === 1025) {
+                battleZone.push(
+                    new Frontiere ({
+                        position: {
+                            x: j*Frontiere.WIDTH + decalage.x,
+                            y: i*Frontiere.HEIGHT + decalage.y,
+                        }
+                    })
+                )
+            }
+    })
+})
+
+console.log(frontieres);
+console.log(battleZone);
+
 const image = new Image()
 image.src = './images/pokemonMap.png'
 
 const foregroundImage = new Image()
 foregroundImage.src = './images/foreground.png'
-
 
 const playerDownImage = new Image()
 playerDownImage.src = './images/playerDown.png'
@@ -82,7 +89,7 @@ const player = new Sprite({
         down: playerDownImage,
     }
 })
-console.log(player)
+
 const background = new Sprite({
     position: {
         x: decalage.x,
@@ -114,7 +121,7 @@ const keys = {
     }
 }
 
-const deplacable = [background, ...frontieres, foreground]
+const deplacable = [background, ...frontieres, ...battleZone, foreground]
 
 function collisionRectangulaire({rectangle1, rectangle2}) {
     return (rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
@@ -127,8 +134,10 @@ function animate() {
     window.requestAnimationFrame(animate)
     background.draw()
     frontieres.forEach(frontiere => {
-        frontiere.draw()
-        
+        frontiere.draw()  
+    })
+    battleZone.forEach(battleZone => {
+        battleZone.draw()
     })
     player.draw()
     foreground.draw()
