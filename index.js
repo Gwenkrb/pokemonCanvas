@@ -142,6 +142,34 @@ function animate() {
     player.draw()
     foreground.draw()
 
+    if (keys.z.pressed || keys.q.pressed || keys.s.pressed || keys.d.pressed) {
+        for (let i = 0; i < battleZone.length; i++) {
+            const battleZon = battleZone[i];
+            const overlappingArea =
+            (Math.min(
+                player.position.x + player.width, 
+                battleZon.position.x + battleZon.width
+            ) -
+             Math.max(player.position.x, battleZon.position.x)) * 
+            (Math.min(
+                player.position.y + player.height,
+                battleZon.position.y + battleZon.height
+            ) - 
+                Math.max(player.position.y, battleZon.position.y));
+            if (
+                collisionRectangulaire({
+                    rectangle1: player,
+                    rectangle2: battleZon
+                }) &&
+                overlappingArea > (player.width * player.height) / 2
+                && Math.random() < 0.01
+            )  {
+                console.log('Zone de combat détectée');
+                break
+            }
+        }
+    }
+
     let moving = true
     player.moving = false
     if (keys.z.pressed && lastKey == 'z') {
@@ -162,6 +190,7 @@ function animate() {
                 break
             }
         }
+
         if (moving)
         deplacable.forEach(deplacable => {
             deplacable.position.y += 3
