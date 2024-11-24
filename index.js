@@ -1,6 +1,7 @@
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 
+
 canvas.width = 1024
 canvas.height = 576
 
@@ -22,16 +23,16 @@ const decalage = {
 
 collisionsMap.forEach((row, i) => {
     row.forEach((symbol, j) => {
-            if (symbol === 1025) {
-                frontieres.push(
-                    new Frontiere ({
-                        position: {
-                            x: j*Frontiere.WIDTH + decalage.x,
-                            y: i*Frontiere.HEIGHT + decalage.y,
-                        }
-                    })
-                )
-            }
+        if (symbol === 1025) {
+            frontieres.push(
+                new Frontiere ({
+                    position: {
+                        x: j*Frontiere.WIDTH + decalage.x,
+                        y: i*Frontiere.HEIGHT + decalage.y,
+                    }
+                })
+            )
+        }
     })
 })
 
@@ -39,21 +40,18 @@ const battleZone = []
 
 battleZoneMap.forEach((row, i) => {
     row.forEach((symbol, j) => {
-            if (symbol === 1025) {
-                battleZone.push(
-                    new Frontiere ({
-                        position: {
-                            x: j*Frontiere.WIDTH + decalage.x,
-                            y: i*Frontiere.HEIGHT + decalage.y,
-                        }
-                    })
-                )
-            }
+        if (symbol === 1025) {
+            battleZone.push(
+                new Frontiere ({
+                    position: {
+                        x: j*Frontiere.WIDTH + decalage.x,
+                        y: i*Frontiere.HEIGHT + decalage.y,
+                    }
+                })
+            )
+        }
     })
 })
-
-console.log(frontieres);
-console.log(battleZone);
 
 const image = new Image()
 image.src = './images/pokemonMap.png'
@@ -128,59 +126,81 @@ function collisionRectangulaire({rectangle1, rectangle2}) {
         rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
         rectangle1.position.y <= rectangle2.position.y + rectangle2.height &&
         rectangle1.position.y + rectangle1.height >= rectangle2.position.y)
-}
-
-function animate() {
-    window.requestAnimationFrame(animate)
-    background.draw()
-    frontieres.forEach(frontiere => {
-        frontiere.draw()  
-    })
-    battleZone.forEach(battleZone => {
-        battleZone.draw()
-    })
-    player.draw()
-    foreground.draw()
-
-    if (keys.z.pressed || keys.q.pressed || keys.s.pressed || keys.d.pressed) {
-        for (let i = 0; i < battleZone.length; i++) {
-            const battleZon = battleZone[i];
-            const overlappingArea =
-            (Math.min(
-                player.position.x + player.width, 
-                battleZon.position.x + battleZon.width
-            ) -
-             Math.max(player.position.x, battleZon.position.x)) * 
-            (Math.min(
-                player.position.y + player.height,
-                battleZon.position.y + battleZon.height
-            ) - 
+    }
+    
+    const battle = {
+        initiated: false,
+    }
+    
+    function animate() {
+        const animationId = window.requestAnimationFrame(animate)
+        background.draw()
+        frontieres.forEach(frontiere => {
+            frontiere.draw()  
+        })
+        battleZone.forEach(battleZone => {
+            battleZone.draw()
+        })
+        player.draw()
+        foreground.draw()
+        
+        let moving = true
+        player.moving = false
+        
+        if (battle.initiated) return;
+        
+        if (keys.z.pressed || keys.q.pressed || keys.s.pressed || keys.d.pressed) {
+            for (let i = 0; i < battleZone.length; i++) {
+                const battleZon = battleZone[i];
+                const overlappingArea =
+                (Math.min(
+                    player.position.x + player.width, 
+                    battleZon.position.x + battleZon.width
+                ) -
+                Math.max(player.position.x, battleZon.position.x)) * 
+                (Math.min(
+                    player.position.y + player.height,
+                    battleZon.position.y + battleZon.height
+                ) - 
                 Math.max(player.position.y, battleZon.position.y));
-            if (
-                collisionRectangulaire({
-                    rectangle1: player,
-                    rectangle2: battleZon
-                }) &&
-                overlappingArea > (player.width * player.height) / 2
-                && Math.random() < 0.01
-            )  {
-                console.log('Zone de combat détectée');
-                break
+                if (
+                    collisionRectangulaire({
+                        rectangle1: player,
+                        rectangle2: battleZon
+                    }) &&
+                    overlappingArea > (player.width * player.height) / 2
+                    && Math.random() < 0.01
+                )  {
+                    console.log('Zone de combat détectée');
+                    window.cancelAnimationFrame(animationId);
+                    gsap. to('#overlappingDiv', {
+                        opacity:1,
+                        repeat:3,
+                        yoyo:true,
+                        duration: 0.4,
+                        onComplete(){
+                            gsap.to('#overlappingDiv', {
+                                opacity:1,
+                                duration: 0.4,
+                            })
+                            animateBattle()
+                        }
+                    })
+                    battle.initiated = true;
+                    break
+                }
             }
         }
-    }
-
-    let moving = true
-    player.moving = false
-    if (keys.z.pressed && lastKey == 'z') {
-        player.moving = true
-        player.image = player.sprites.up
-        for (let i = 0; i < frontieres.length; i++) {
-            const frontiere = frontieres[i]
-            if (
-                collisionRectangulaire({
-                    rectangle1: player,
-                    rectangle2: {...frontiere, position: {
+        
+        if (keys.z.pressed && lastKey == 'z') {
+            player.moving = true
+            player.image = player.sprites.up
+            for (let i = 0; i < frontieres.length; i++) {
+                const frontiere = frontieres[i]
+                if (
+                    collisionRectangulaire({
+                        rectangle1: player,
+                        rectangle2: {...frontiere, position: {
                         x: frontiere.position.x,
                         y: frontiere.position.y + 3
                     }}
@@ -267,6 +287,11 @@ function animate() {
     }
 }
 animate()
+
+function animateBattle() {
+    window.requestAnimationFrame(animateBattle);
+    console.log("animating battle");
+}
 
 let lastKey = ''
 window.addEventListener('keydown', (e) => {
